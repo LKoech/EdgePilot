@@ -32,11 +32,13 @@ class TestRecoveryController:
         self.registry.register(GetTimeExecutor())
 
     def test_success_on_first_try(self) -> None:
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(tool_name="get_time", arguments={}),
-            )
-        ])
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="get_time", arguments={}),
+                )
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=3)
         result = ctrl.handle_request("what time is it?")
 
@@ -46,9 +48,7 @@ class TestRecoveryController:
         assert len(result.recovery_events) == 0
 
     def test_text_response_no_tool(self) -> None:
-        planner = SequencePlanner([
-            PlannerResult(text_response="Hello there!")
-        ])
+        planner = SequencePlanner([PlannerResult(text_response="Hello there!")])
         ctrl = RecoveryController(planner, self.registry, max_retries=3)
         result = ctrl.handle_request("hi")
 
@@ -58,14 +58,16 @@ class TestRecoveryController:
 
     def test_recovery_on_unknown_tool(self) -> None:
         """First attempt calls unknown tool, second attempt calls valid tool."""
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(tool_name="nonexistent", arguments={}),
-            ),
-            PlannerResult(
-                tool_call=ToolCall(tool_name="get_time", arguments={}),
-            ),
-        ])
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="nonexistent", arguments={}),
+                ),
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="get_time", arguments={}),
+                ),
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=3)
         result = ctrl.handle_request("what time is it?")
 
@@ -76,20 +78,22 @@ class TestRecoveryController:
 
     def test_recovery_on_validation_failure_then_success(self) -> None:
         """First call has bad args, recovery re-plans with valid args."""
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(
-                    tool_name="get_time",
-                    arguments={"timezone": 12345},
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(
+                        tool_name="get_time",
+                        arguments={"timezone": 12345},
+                    ),
                 ),
-            ),
-            PlannerResult(
-                tool_call=ToolCall(
-                    tool_name="get_time",
-                    arguments={"timezone": "local"},
+                PlannerResult(
+                    tool_call=ToolCall(
+                        tool_name="get_time",
+                        arguments={"timezone": "local"},
+                    ),
                 ),
-            ),
-        ])
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=2)
         result = ctrl.handle_request("time?")
         assert result.success is True
@@ -98,11 +102,13 @@ class TestRecoveryController:
 
     def test_budget_exhaustion(self) -> None:
         """All attempts fail — budget exhausted."""
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(tool_name="nonexistent", arguments={}),
-            ),
-        ])
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="nonexistent", arguments={}),
+                ),
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=2)
         result = ctrl.handle_request("do something")
 
@@ -113,12 +119,14 @@ class TestRecoveryController:
 
     def test_recovery_context_passed_to_planner(self) -> None:
         """Verify the planner receives error context on re-plan."""
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(tool_name="bad_tool", arguments={}),
-            ),
-            PlannerResult(text_response="I'll just respond directly."),
-        ])
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="bad_tool", arguments={}),
+                ),
+                PlannerResult(text_response="I'll just respond directly."),
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=3)
         ctrl.handle_request("test")
 
@@ -136,12 +144,14 @@ class TestRecoveryFailureTypes:
         self.registry.register(FlakyExecutor())
 
     def test_unknown_tool_classified(self) -> None:
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(tool_name="no_such_tool", arguments={}),
-            ),
-            PlannerResult(text_response="OK"),
-        ])
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="no_such_tool", arguments={}),
+                ),
+                PlannerResult(text_response="OK"),
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=3)
         result = ctrl.handle_request("test")
 
@@ -150,19 +160,19 @@ class TestRecoveryFailureTypes:
         assert result.recovery_events[0].tool_name == "no_such_tool"
 
     def test_validation_failure_classified(self) -> None:
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(
-                    tool_name="get_time",
-                    arguments={"timezone": 999},
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(
+                        tool_name="get_time",
+                        arguments={"timezone": 999},
+                    ),
                 ),
-            ),
-            PlannerResult(
-                tool_call=ToolCall(
-                    tool_name="get_time", arguments={}
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="get_time", arguments={}),
                 ),
-            ),
-        ])
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=3)
         result = ctrl.handle_request("time?")
 
@@ -172,19 +182,19 @@ class TestRecoveryFailureTypes:
 
     def test_execution_failure_classified(self) -> None:
         """Flaky executor with fail_rate=1.0 triggers execution failure."""
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(
-                    tool_name="flaky_lookup",
-                    arguments={"query": "test", "fail_rate": 1.0},
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(
+                        tool_name="flaky_lookup",
+                        arguments={"query": "test", "fail_rate": 1.0},
+                    ),
                 ),
-            ),
-            PlannerResult(
-                tool_call=ToolCall(
-                    tool_name="get_time", arguments={}
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="get_time", arguments={}),
                 ),
-            ),
-        ])
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=3)
         result = ctrl.handle_request("look up data")
 
@@ -195,20 +205,22 @@ class TestRecoveryFailureTypes:
 
     def test_mixed_failure_types(self) -> None:
         """Unknown tool -> exec failure -> success."""
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(tool_name="fake", arguments={}),
-            ),
-            PlannerResult(
-                tool_call=ToolCall(
-                    tool_name="flaky_lookup",
-                    arguments={"query": "x", "fail_rate": 1.0},
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="fake", arguments={}),
                 ),
-            ),
-            PlannerResult(
-                tool_call=ToolCall(tool_name="get_time", arguments={}),
-            ),
-        ])
+                PlannerResult(
+                    tool_call=ToolCall(
+                        tool_name="flaky_lookup",
+                        arguments={"query": "x", "fail_rate": 1.0},
+                    ),
+                ),
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="get_time", arguments={}),
+                ),
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=3)
         result = ctrl.handle_request("test")
 
@@ -220,27 +232,31 @@ class TestRecoveryFailureTypes:
 
     def test_failure_type_in_context(self) -> None:
         """Verify failure type is included in recovery context."""
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(tool_name="fake", arguments={}),
-            ),
-            PlannerResult(text_response="ok"),
-        ])
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="fake", arguments={}),
+                ),
+                PlannerResult(text_response="ok"),
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=3)
         ctrl.handle_request("test")
 
         assert "unknown_tool" in planner.contexts[1]
 
     def test_recovery_event_has_tool_name(self) -> None:
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(
-                    tool_name="flaky_lookup",
-                    arguments={"query": "x", "fail_rate": 1.0},
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(
+                        tool_name="flaky_lookup",
+                        arguments={"query": "x", "fail_rate": 1.0},
+                    ),
                 ),
-            ),
-            PlannerResult(text_response="giving up"),
-        ])
+                PlannerResult(text_response="giving up"),
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=1)
         result = ctrl.handle_request("test")
 
@@ -248,14 +264,16 @@ class TestRecoveryFailureTypes:
 
     def test_flaky_executor_success_path(self) -> None:
         """Flaky executor with fail_rate=0 always succeeds."""
-        planner = SequencePlanner([
-            PlannerResult(
-                tool_call=ToolCall(
-                    tool_name="flaky_lookup",
-                    arguments={"query": "data", "fail_rate": 0.0},
+        planner = SequencePlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(
+                        tool_name="flaky_lookup",
+                        arguments={"query": "data", "fail_rate": 0.0},
+                    ),
                 ),
-            ),
-        ])
+            ]
+        )
         ctrl = RecoveryController(planner, self.registry, max_retries=3)
         result = ctrl.handle_request("look up data")
 

@@ -39,9 +39,7 @@ def record_until_silence(
 
     logger.info("Recording... (speak now, silence to stop)")
 
-    def callback(
-        indata: np.ndarray, frame_count: int, time_info: object, status: object
-    ) -> None:
+    def callback(indata: np.ndarray, frame_count: int, time_info: object, status: object) -> None:
         nonlocal silent_blocks, speaking_started, block_count
         if status:
             logger.warning("Audio input status: %s", status)

@@ -30,8 +30,6 @@ class ValidationGate:
         if result.success:
             logger.info("Tool %s executed successfully", tool_call.tool_name)
         else:
-            logger.warning(
-                "Tool %s failed: %s", tool_call.tool_name, result.error
-            )
+            logger.warning("Tool %s failed: %s", tool_call.tool_name, result.error)
 
         return result

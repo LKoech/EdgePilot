@@ -19,9 +19,7 @@ class MockSTT(BaseSTT):
             processing_sec=0.5,
         )
 
-    def transcribe_bytes(
-        self, audio_data: bytes, sample_rate: int = 16000
-    ) -> TranscriptionResult:
+    def transcribe_bytes(self, audio_data: bytes, sample_rate: int = 16000) -> TranscriptionResult:
         duration = len(audio_data) / 2 / sample_rate  # int16 = 2 bytes/sample
         return TranscriptionResult(
             text=self._text,
@@ -33,9 +31,7 @@ class MockSTT(BaseSTT):
 
 class TestTranscriptionResult:
     def test_realtime_factor(self) -> None:
-        r = TranscriptionResult(
-            text="hi", duration_sec=4.0, processing_sec=1.0
-        )
+        r = TranscriptionResult(text="hi", duration_sec=4.0, processing_sec=1.0)
         assert r.realtime_factor == 0.25
 
     def test_realtime_factor_zero_duration(self) -> None:

@@ -9,16 +9,12 @@ from edgepilot.executors.base import BaseExecutor
 
 
 class SystemQueryArgs(BaseModel):
-    query: str = Field(
-        description="What to query: 'os', 'cpu', 'memory', 'disk', or 'all'."
-    )
+    query: str = Field(description="What to query: 'os', 'cpu', 'memory', 'disk', or 'all'.")
 
 
 class SystemQueryExecutor(BaseExecutor):
     name = "system_query"
-    description = (
-        "Query local system information. Supports: 'os', 'cpu', 'disk', or 'all'."
-    )
+    description = "Query local system information. Supports: 'os', 'cpu', 'disk', or 'all'."
     args_schema = SystemQueryArgs
 
     def execute(self, *, query: str) -> str:

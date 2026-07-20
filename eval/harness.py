@@ -60,9 +60,7 @@ class ScriptedPlanner(BasePlanner):
 
         # No more scripted calls — return text
         return PlannerResult(
-            text_response=(
-                self._text_fallback or f"I can help with: {user_input}"
-            ),
+            text_response=(self._text_fallback or f"I can help with: {user_input}"),
             raw_output=self._text_fallback,
             tokens_generated=self.tokens_generated,
             generation_time_sec=sim_elapsed,
@@ -118,19 +116,17 @@ def run_scenario_with_recovery(
         calls=scenario.planner_calls,
         text_fallback=f"I'll respond to: {scenario.user_input}",
     )
-    ctrl = RecoveryController(
-        planner=planner, registry=registry, max_retries=max_retries
-    )
+    ctrl = RecoveryController(planner=planner, registry=registry, max_retries=max_retries)
     result = ctrl.handle_request(scenario.user_input)
 
     # Count failure types
     val_failures = sum(
-        1 for e in result.recovery_events
+        1
+        for e in result.recovery_events
         if e.failure_type in (FailureType.VALIDATION, FailureType.UNKNOWN_TOOL)
     )
     exec_failures = sum(
-        1 for e in result.recovery_events
-        if e.failure_type == FailureType.EXECUTION
+        1 for e in result.recovery_events if e.failure_type == FailureType.EXECUTION
     )
 
     eval_result = EvalResult(
@@ -147,17 +143,13 @@ def run_scenario_with_recovery(
     return result, eval_result
 
 
-def run_scenario_without_recovery(
-    scenario: Scenario, registry: ExecutorRegistry
-) -> bool:
+def run_scenario_without_recovery(scenario: Scenario, registry: ExecutorRegistry) -> bool:
     """Run a scenario with max_retries=0 (no recovery) — returns success/fail."""
     planner = ScriptedPlanner(
         calls=scenario.planner_calls,
         text_fallback=f"I'll respond to: {scenario.user_input}",
     )
-    ctrl = RecoveryController(
-        planner=planner, registry=registry, max_retries=0
-    )
+    ctrl = RecoveryController(planner=planner, registry=registry, max_retries=0)
     result = ctrl.handle_request(scenario.user_input)
     return result.success
 
@@ -171,9 +163,9 @@ def run_eval() -> EvalReport:
     succeeded_without_recovery = 0
     total_scenarios = len(SCENARIOS)
 
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"  EdgePilot Eval Harness — {total_scenarios} scenarios")
-    print(f"{'='*70}\n")
+    print(f"{'=' * 70}\n")
 
     for scenario in SCENARIOS:
         # Run WITH recovery
@@ -189,9 +181,7 @@ def run_eval() -> EvalReport:
             succeeded_with_recovery += 1
 
         # Run WITHOUT recovery for comparison
-        no_recovery_success = run_scenario_without_recovery(
-            scenario, build_eval_registry()
-        )
+        no_recovery_success = run_scenario_without_recovery(scenario, build_eval_registry())
         if no_recovery_success:
             succeeded_without_recovery += 1
 
@@ -199,7 +189,8 @@ def run_eval() -> EvalReport:
         status = "PASS" if eval_result.passed else "FAIL"
         recovery_str = (
             f" [recovery: {eval_result.recovery_events} events]"
-            if eval_result.recovery_events else ""
+            if eval_result.recovery_events
+            else ""
         )
         print(
             f"  [{status}] {scenario.id:<35} "
@@ -209,16 +200,13 @@ def run_eval() -> EvalReport:
         )
 
     # Compute metrics
-    report.completion_with_recovery = (
-        succeeded_with_recovery / total_scenarios * 100
-    )
-    report.completion_without_recovery = (
-        succeeded_without_recovery / total_scenarios * 100
-    )
+    report.completion_with_recovery = succeeded_with_recovery / total_scenarios * 100
+    report.completion_without_recovery = succeeded_without_recovery / total_scenarios * 100
 
     # Simulated tokens/sec (in real mode, comes from planner)
     report.tokens_per_sec_values = [
-        50 / 0.02 for _ in SCENARIOS  # simulated: 50 tokens in 20ms
+        50 / 0.02
+        for _ in SCENARIOS  # simulated: 50 tokens in 20ms
     ]
 
     return report
@@ -229,9 +217,9 @@ def print_report(report: EvalReport) -> None:
     total = len(report.results)
     passed = sum(1 for r in report.results if r.passed)
 
-    print(f"\n{'='*70}")
+    print(f"\n{'=' * 70}")
     print(f"  RESULTS: {passed}/{total} scenarios behaved as expected")
-    print(f"{'='*70}")
+    print(f"{'=' * 70}")
 
     # Metric (a): Validation gate catch rate
     if report.total_malformed_calls > 0:
@@ -242,26 +230,16 @@ def print_report(report: EvalReport) -> None:
     print(f"      Malformed calls caught: {report.malformed_caught}")
 
     # Metric (b): Completion with vs without recovery
-    print(
-        f"\n  (b) Task completion WITH recovery:    "
-        f"{report.completion_with_recovery:.1f}%"
-    )
-    print(
-        f"      Task completion WITHOUT recovery: "
-        f"{report.completion_without_recovery:.1f}%"
-    )
-    delta = (
-        report.completion_with_recovery - report.completion_without_recovery
-    )
+    print(f"\n  (b) Task completion WITH recovery:    {report.completion_with_recovery:.1f}%")
+    print(f"      Task completion WITHOUT recovery: {report.completion_without_recovery:.1f}%")
+    delta = report.completion_with_recovery - report.completion_without_recovery
     print(f"      Recovery improvement: +{delta:.1f} percentage points")
 
     # Metric (c): Tokens/sec
     if report.tokens_per_sec_values:
         avg_tps = statistics.mean(report.tokens_per_sec_values)
         print(f"\n  (c) Planner tokens/sec (simulated): {avg_tps:.0f} tok/s")
-        print(
-            "      (Run with --live for real Ollama measurements)"
-        )
+        print("      (Run with --live for real Ollama measurements)")
 
     # Metric (d): Latency
     if report.latencies:
@@ -271,17 +249,13 @@ def print_report(report: EvalReport) -> None:
         p50 = sorted_lat[p50_idx]
         p95 = sorted_lat[p95_idx]
         print("\n  (d) End-to-end latency (simulated):")
-        print(f"      p50: {p50*1000:.1f}ms")
-        print(f"      p95: {p95*1000:.1f}ms")
-        print(
-            "      (Run with --live for real latency measurements)"
-        )
+        print(f"      p50: {p50 * 1000:.1f}ms")
+        print(f"      p95: {p95 * 1000:.1f}ms")
+        print("      (Run with --live for real latency measurements)")
 
     # Recovery breakdown
     total_recovery_events = sum(r.recovery_events for r in report.results)
-    recovery_scenarios = sum(
-        1 for r in report.results if r.recovery_events > 0
-    )
+    recovery_scenarios = sum(1 for r in report.results if r.recovery_events > 0)
     print("\n  Recovery summary:")
     print(f"      Scenarios triggering recovery: {recovery_scenarios}")
     print(f"      Total recovery events: {total_recovery_events}")
@@ -289,13 +263,14 @@ def print_report(report: EvalReport) -> None:
     exec_total = sum(r.execution_failures for r in report.results)
     print(f"      Validation failures: {val_total}")
     print(f"      Execution failures: {exec_total}")
-    print(f"\n{'='*70}\n")
+    print(f"\n{'=' * 70}\n")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="EdgePilot eval harness")
     parser.add_argument(
-        "--live", action="store_true",
+        "--live",
+        action="store_true",
         help="Use live Ollama planner instead of scripted mock",
     )
     args = parser.parse_args()
@@ -303,10 +278,7 @@ def main() -> None:
     configure_logging(structured=False)
 
     if args.live:
-        print(
-            "Live mode not yet implemented — "
-            "run without --live for scripted eval."
-        )
+        print("Live mode not yet implemented — run without --live for scripted eval.")
         sys.exit(1)
 
     report = run_eval()

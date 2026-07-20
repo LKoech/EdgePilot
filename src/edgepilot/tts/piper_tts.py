@@ -41,24 +41,16 @@ class PiperTTS(BaseTTS):
 
                 data_dir = Path.home() / ".local" / "share" / "piper_tts"
                 data_dir.mkdir(parents=True, exist_ok=True)
-                ensure_voice_exists(
-                    self._model_name, [data_dir], data_dir, None
-                )
-                onnx_path, config_path = find_voice(
-                    self._model_name, [data_dir]
-                )
+                ensure_voice_exists(self._model_name, [data_dir], data_dir, None)
+                onnx_path, config_path = find_voice(self._model_name, [data_dir])
             except Exception:
                 # Fallback: try loading by name directly
                 raise
 
             self._voice = PiperVoice.load(str(onnx_path), str(config_path))
-            if hasattr(self._voice, "config") and hasattr(
-                self._voice.config, "sample_rate"
-            ):
+            if hasattr(self._voice, "config") and hasattr(self._voice.config, "sample_rate"):
                 self._sample_rate_val = self._voice.config.sample_rate
-            logger.info(
-                "Piper voice loaded (sample_rate=%d)", self._sample_rate_val
-            )
+            logger.info("Piper voice loaded (sample_rate=%d)", self._sample_rate_val)
         except Exception:
             logger.exception("Failed to load Piper voice model")
             raise
@@ -86,7 +78,9 @@ class PiperTTS(BaseTTS):
 
         logger.info(
             "Synthesized %.1fs audio in %.2fs for: '%s'",
-            duration, elapsed, text[:60],
+            duration,
+            elapsed,
+            text[:60],
         )
         return SynthesisResult(
             audio_bytes=pcm_bytes,

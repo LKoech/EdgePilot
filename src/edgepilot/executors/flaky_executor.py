@@ -30,7 +30,6 @@ class FlakyExecutor(BaseExecutor):
     def execute(self, *, query: str, fail_rate: float = 0.5) -> str:
         if random.random() < fail_rate:
             raise RuntimeError(
-                f"Flaky lookup failed for query '{query}' "
-                f"(simulated failure, rate={fail_rate})"
+                f"Flaky lookup failed for query '{query}' (simulated failure, rate={fail_rate})"
             )
         return f"Flaky lookup result for '{query}': [simulated data — 42 records found]"

@@ -83,17 +83,19 @@ class RecoveryController:
         last_response = ""
 
         for attempt in range(1, self.max_retries + 2):
-            plan_result = self.planner.plan(
-                user_input, tool_descriptions, context
-            )
+            plan_result = self.planner.plan(user_input, tool_descriptions, context)
 
             # Direct text response — no tool call needed
             if not plan_result.is_tool_call:
                 elapsed = time.perf_counter() - start
                 metrics.end_to_end_latency.observe(elapsed)
                 self._log_completion(
-                    user_input, True, None, attempt,
-                    len(recovery_events), elapsed,
+                    user_input,
+                    True,
+                    None,
+                    attempt,
+                    len(recovery_events),
+                    elapsed,
                     plan_result.tokens_per_sec,
                 )
                 return PipelineResult(
@@ -115,8 +117,12 @@ class RecoveryController:
                 if recovery_events:
                     metrics.recovery_successes.inc()
                 self._log_completion(
-                    user_input, True, tool_result.tool_name, attempt,
-                    len(recovery_events), elapsed,
+                    user_input,
+                    True,
+                    tool_result.tool_name,
+                    attempt,
+                    len(recovery_events),
+                    elapsed,
                     plan_result.tokens_per_sec,
                 )
                 return PipelineResult(
@@ -161,8 +167,13 @@ class RecoveryController:
         elapsed = time.perf_counter() - start
         metrics.end_to_end_latency.observe(elapsed)
         self._log_completion(
-            user_input, False, None, self.max_retries + 1,
-            len(recovery_events), elapsed, 0.0,
+            user_input,
+            False,
+            None,
+            self.max_retries + 1,
+            len(recovery_events),
+            elapsed,
+            0.0,
         )
         return PipelineResult(
             user_input=user_input,
@@ -209,8 +220,7 @@ class RecoveryController:
         level = logging.INFO if success else logging.ERROR
         logger.log(
             level,
-            "Pipeline %s: tool=%s attempts=%d recoveries=%d "
-            "elapsed=%.3fs",
+            "Pipeline %s: tool=%s attempts=%d recoveries=%d elapsed=%.3fs",
             "succeeded" if success else "failed",
             tool_name or "none",
             attempts,

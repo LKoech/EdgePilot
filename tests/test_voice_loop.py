@@ -23,9 +23,7 @@ class MockSTT(BaseSTT):
     def transcribe(self, audio_path: str) -> TranscriptionResult:
         return self._next()
 
-    def transcribe_bytes(
-        self, audio_data: bytes, sample_rate: int = 16000
-    ) -> TranscriptionResult:
+    def transcribe_bytes(self, audio_data: bytes, sample_rate: int = 16000) -> TranscriptionResult:
         return self._next()
 
     def _next(self) -> TranscriptionResult:
@@ -83,9 +81,7 @@ def _build_voice_loop(
 class TestVoiceLoop:
     @patch("edgepilot.voice_loop.record_until_silence")
     @patch("edgepilot.voice_loop.play_audio")
-    def test_run_once_success(
-        self, mock_play: MagicMock, mock_record: MagicMock
-    ) -> None:
+    def test_run_once_success(self, mock_play: MagicMock, mock_record: MagicMock) -> None:
         """Single voice cycle: record -> transcribe -> plan -> execute -> speak."""
         # Simulate 1s of audio
         mock_record.return_value = np.zeros(16000, dtype=np.int16).tobytes()
@@ -102,9 +98,7 @@ class TestVoiceLoop:
 
     @patch("edgepilot.voice_loop.record_until_silence")
     @patch("edgepilot.voice_loop.play_audio")
-    def test_empty_audio_returns_none(
-        self, mock_play: MagicMock, mock_record: MagicMock
-    ) -> None:
+    def test_empty_audio_returns_none(self, mock_play: MagicMock, mock_record: MagicMock) -> None:
         mock_record.return_value = b""
         loop, tts = _build_voice_loop([])
         result = loop.run_once()
@@ -113,9 +107,7 @@ class TestVoiceLoop:
 
     @patch("edgepilot.voice_loop.record_until_silence")
     @patch("edgepilot.voice_loop.play_audio")
-    def test_quit_command(
-        self, mock_play: MagicMock, mock_record: MagicMock
-    ) -> None:
+    def test_quit_command(self, mock_play: MagicMock, mock_record: MagicMock) -> None:
         mock_record.return_value = np.zeros(16000, dtype=np.int16).tobytes()
         loop, tts = _build_voice_loop(["goodbye"])
         result = loop.run_once()
@@ -124,9 +116,7 @@ class TestVoiceLoop:
 
     @patch("edgepilot.voice_loop.record_until_silence")
     @patch("edgepilot.voice_loop.play_audio")
-    def test_tts_failure_doesnt_crash(
-        self, mock_play: MagicMock, mock_record: MagicMock
-    ) -> None:
+    def test_tts_failure_doesnt_crash(self, mock_play: MagicMock, mock_record: MagicMock) -> None:
         """If TTS fails, the loop should still return the text response."""
         mock_record.return_value = np.zeros(16000, dtype=np.int16).tobytes()
         mock_play.side_effect = Exception("Speaker not found")

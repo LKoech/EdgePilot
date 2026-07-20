@@ -1,4 +1,4 @@
-.PHONY: setup setup-voice run run-voice serve test lint format typecheck ci eval clean
+.PHONY: setup setup-voice run run-voice serve test lint format typecheck ci eval dashboard dashboard-down clean
 
 setup:
 	python -m pip install -e ".[dev]" --quiet
@@ -41,6 +41,19 @@ ci: lint test
 
 eval:
 	python -m eval.harness
+
+dashboard:
+	docker compose -f docker-compose.monitoring.yml up -d
+	@echo ""
+	@echo "Monitoring stack started:"
+	@echo "  Grafana:    http://localhost:3000  (admin/admin)"
+	@echo "  Prometheus: http://localhost:9090"
+	@echo ""
+	@echo "Now run 'make serve' to start EdgePilot on :8000"
+	@echo ""
+
+dashboard-down:
+	docker compose -f docker-compose.monitoring.yml down
 
 clean:
 	find . -type d -name __pycache__ -exec rm -rf {} + 2>/dev/null || true

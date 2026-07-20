@@ -30,8 +30,6 @@ class BaseSTT(ABC):
         ...
 
     @abstractmethod
-    def transcribe_bytes(
-        self, audio_data: bytes, sample_rate: int = 16000
-    ) -> TranscriptionResult:
+    def transcribe_bytes(self, audio_data: bytes, sample_rate: int = 16000) -> TranscriptionResult:
         """Transcribe raw audio bytes (PCM int16 mono) to text."""
         ...

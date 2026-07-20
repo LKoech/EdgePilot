@@ -1,6 +1,5 @@
 """Tests for the eval harness — verifies scenarios and report metrics."""
 
-
 from eval.harness import (
     build_eval_registry,
     run_scenario_with_recovery,
@@ -36,9 +35,7 @@ class TestEvalScenarios:
 
     def test_execution_failure_scenario(self) -> None:
         registry = build_eval_registry()
-        scenario = next(
-            s for s in SCENARIOS if s.id == "exec_flaky_fails_then_recovers"
-        )
+        scenario = next(s for s in SCENARIOS if s.id == "exec_flaky_fails_then_recovers")
         _, eval_result = run_scenario_with_recovery(scenario, registry)
         assert eval_result.success is True
         assert eval_result.recovery_events > 0
@@ -46,36 +43,23 @@ class TestEvalScenarios:
 
     def test_budget_exhaustion_scenario(self) -> None:
         registry = build_eval_registry()
-        scenario = next(
-            s for s in SCENARIOS if s.id == "exec_flaky_exhausts_budget"
-        )
+        scenario = next(s for s in SCENARIOS if s.id == "exec_flaky_exhausts_budget")
         _, eval_result = run_scenario_with_recovery(scenario, registry)
         assert eval_result.success is False
         assert eval_result.passed is True  # expected to fail
 
     def test_recovery_improves_completion(self) -> None:
         """Scenarios that need recovery should fail without it."""
-        recovery_scenarios = [
-            s for s in SCENARIOS
-            if s.expect_recovery and s.expect_success
-        ]
+        recovery_scenarios = [s for s in SCENARIOS if s.expect_recovery and s.expect_success]
         assert len(recovery_scenarios) > 0
 
         for scenario in recovery_scenarios:
             # With recovery: should succeed
-            _, with_result = run_scenario_with_recovery(
-                scenario, build_eval_registry()
-            )
-            assert with_result.success is True, (
-                f"{scenario.id} should succeed with recovery"
-            )
+            _, with_result = run_scenario_with_recovery(scenario, build_eval_registry())
+            assert with_result.success is True, f"{scenario.id} should succeed with recovery"
 
             # Without recovery: should fail (only first call matters)
-            without_success = run_scenario_without_recovery(
-                scenario, build_eval_registry()
-            )
+            without_success = run_scenario_without_recovery(scenario, build_eval_registry())
             # If first call fails, without recovery it should fail
             if with_result.recovery_events > 0:
-                assert without_success is False, (
-                    f"{scenario.id} should fail without recovery"
-                )
+                assert without_success is False, f"{scenario.id} should fail without recovery"

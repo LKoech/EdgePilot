@@ -29,21 +29,21 @@ class MockPlanner(BasePlanner):
 
 class TestMockPlanner:
     def test_returns_tool_call(self) -> None:
-        planner = MockPlanner([
-            PlannerResult(
-                tool_call=ToolCall(tool_name="get_time", arguments={}),
-                raw_output='{"tool_name": "get_time", "arguments": {}}',
-            )
-        ])
+        planner = MockPlanner(
+            [
+                PlannerResult(
+                    tool_call=ToolCall(tool_name="get_time", arguments={}),
+                    raw_output='{"tool_name": "get_time", "arguments": {}}',
+                )
+            ]
+        )
         result = planner.plan("what time is it?", [])
         assert result.is_tool_call
         assert result.tool_call is not None
         assert result.tool_call.tool_name == "get_time"
 
     def test_returns_text(self) -> None:
-        planner = MockPlanner([
-            PlannerResult(text_response="Hello! How can I help?")
-        ])
+        planner = MockPlanner([PlannerResult(text_response="Hello! How can I help?")])
         result = planner.plan("hi", [])
         assert not result.is_tool_call
         assert result.text_response == "Hello! How can I help?"
@@ -66,7 +66,7 @@ class TestOllamaPlannerParsing:
 
     def test_parse_json_with_surrounding_text(self) -> None:
         raw = (
-            'I will call the tool:\n'
+            "I will call the tool:\n"
             '{"tool_name": "system_query", "arguments": {"query": "os"}}\nDone.'
         )
         result = OllamaPlanner._try_parse_tool_call(raw)

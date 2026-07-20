@@ -33,9 +33,16 @@ class VoiceLoop:
         self.silence_duration = silence_duration
 
     def run_once(self) -> str | None:
-        """Run a single voice interaction cycle. Returns the response text, or None on empty."""
+        """Run a single voice interaction cycle."""
         e2e_start = time.perf_counter()
+        metrics.active_requests.inc()
 
+        try:
+            return self._run_once_inner(e2e_start)
+        finally:
+            metrics.active_requests.dec()
+
+    def _run_once_inner(self, e2e_start: float) -> str | None:
         # 1. Record from mic
         print("\n  [Listening... speak now]")
         audio_bytes = record_until_silence(
@@ -46,11 +53,15 @@ class VoiceLoop:
             logger.info("No audio captured.")
             return None
 
-        # 2. STT
+        # 2. STT (with metrics)
         print("  [Transcribing...]")
         transcription = self.stt.transcribe_bytes(audio_bytes)
-        user_text = transcription.text.strip()
+        metrics.stt_latency.observe(transcription.processing_sec)
+        metrics.stt_audio_duration.observe(transcription.duration_sec)
+        if transcription.realtime_factor > 0:
+            metrics.stt_realtime_factor.observe(transcription.realtime_factor)
 
+        user_text = transcription.text.strip()
         if not user_text:
             logger.info("Empty transcription, skipping.")
             return None
@@ -65,6 +76,7 @@ class VoiceLoop:
         # 3. Plan + validate + execute (with recovery)
         print("  [Thinking...]")
         result = self.controller.handle_request(user_text)
+        metrics.requests_total.labels(status="success" if result.success else "failure").inc()
 
         # 4. TTS + play
         response_text = result.response
@@ -73,9 +85,7 @@ class VoiceLoop:
         if result.tool_name:
             print(f"  [tool: {result.tool_name}]")
         if result.recovery_events:
-            print(
-                f"  [recovery: {len(result.recovery_events)} events]"
-            )
+            print(f"  [recovery: {len(result.recovery_events)} events]")
 
         self._speak(response_text)
 
@@ -90,6 +100,8 @@ class VoiceLoop:
         try:
             print("  [Speaking...]")
             result = self.tts.synthesize(text)
+            metrics.tts_latency.observe(result.processing_sec)
+            metrics.tts_audio_duration.observe(result.duration_sec)
             play_audio(result.audio_bytes, result.sample_rate)
         except Exception:
             logger.exception("TTS/playback failed")

@@ -71,9 +71,7 @@ class TestExecutorRegistry:
         self.registry.register(SystemQueryExecutor())
 
         # get_time with defaults
-        result = self.registry.validate_and_execute(
-            ToolCall(tool_name="get_time", arguments={})
-        )
+        result = self.registry.validate_and_execute(ToolCall(tool_name="get_time", arguments={}))
         assert result.success is True
         assert "Current local time" in result.output
 

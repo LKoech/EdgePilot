@@ -48,20 +48,14 @@ controller: RecoveryController | None = None
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     global controller
     controller = build_controller()
-    logger.info(
-        "EdgePilot started — all processing is local, "
-        "no data leaves this machine."
-    )
+    logger.info("EdgePilot started — all processing is local, no data leaves this machine.")
     yield
     logger.info("EdgePilot shutting down.")
 
 
 app = FastAPI(
     title="EdgePilot",
-    description=(
-        "Fully local voice assistant with typed executors "
-        "and adaptive recovery."
-    ),
+    description=("Fully local voice assistant with typed executors and adaptive recovery."),
     version="0.1.0",
     lifespan=lifespan,
 )
@@ -82,16 +76,23 @@ class ChatResponse(BaseModel):
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
+    from edgepilot.metrics.collector import metrics
+
     assert controller is not None
-    result = controller.handle_request(request.message)
-    return ChatResponse(
-        response=result.response,
-        success=result.success,
-        tool_used=result.tool_name,
-        attempts=result.total_attempts,
-        recovery_events=len(result.recovery_events),
-        elapsed_sec=round(result.elapsed_sec, 3),
-    )
+    metrics.active_requests.inc()
+    try:
+        result = controller.handle_request(request.message)
+        metrics.requests_total.labels(status="success" if result.success else "failure").inc()
+        return ChatResponse(
+            response=result.response,
+            success=result.success,
+            tool_used=result.tool_name,
+            attempts=result.total_attempts,
+            recovery_events=len(result.recovery_events),
+            elapsed_sec=round(result.elapsed_sec, 3),
+        )
+    finally:
+        metrics.active_requests.dec()
 
 
 @app.get("/tools")
@@ -102,9 +103,7 @@ async def list_tools() -> list[dict]:
 
 @app.get("/metrics")
 async def prometheus_metrics() -> Response:
-    return Response(
-        content=generate_latest(), media_type=CONTENT_TYPE_LATEST
-    )
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.get("/health")
@@ -135,13 +134,8 @@ def interactive_loop() -> None:
         if result.tool_name:
             print(f"  [tool: {result.tool_name}]")
         if result.recovery_events:
-            print(
-                f"  [recovery attempts: {len(result.recovery_events)}]"
-            )
-        print(
-            f"  [attempts: {result.total_attempts}, "
-            f"elapsed: {result.elapsed_sec:.2f}s]\n"
-        )
+            print(f"  [recovery attempts: {len(result.recovery_events)}]")
+        print(f"  [attempts: {result.total_attempts}, elapsed: {result.elapsed_sec:.2f}s]\n")
 
 
 def voice_mode() -> None:

@@ -30,6 +30,7 @@ Prerequisites:
 - Python 3.12+
 - [Ollama](https://ollama.com/) installed and running
 - A small model pulled: `ollama pull qwen2.5:3b`
+- Docker (for monitoring dashboard only)
 
 ```bash
 # Text mode (no voice dependencies)
@@ -43,6 +44,35 @@ make run-voice
 # API server
 make serve
 ```
+
+## Monitoring Dashboard
+
+Local Prometheus + Grafana stack — all telemetry stays on your machine.
+
+```bash
+# Start the monitoring stack (requires Docker)
+make dashboard
+
+# Open in browser:
+#   Grafana:    http://localhost:3000  (admin/admin)
+#   Prometheus: http://localhost:9090
+
+# Then start EdgePilot with the API server
+make serve
+
+# Stop monitoring
+make dashboard-down
+```
+
+### Dashboard Panels
+
+| Section | Panels |
+|---------|--------|
+| Validation Gate | Pass/reject rate, rejection %, rates over time |
+| Adaptive Recovery | Success rate gauge, attempts/successes/exhausted counters, rates over time |
+| Planner Performance | Tokens/sec, latency percentiles (p50/p95/p99), tool execution breakdown |
+| End-to-End Latency | p50/p95 latency, request rate by status, active requests |
+| Voice Pipeline | STT latency, real-time factor, TTS latency, audio duration |
 
 ## Tech Stack
 

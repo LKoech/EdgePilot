@@ -1,0 +1,364 @@
+{
+  "annotations": { "list": [] },
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "panels": [
+    {
+      "title": "Validation Gate",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "collapsed": false
+    },
+    {
+      "title": "Validation Pass/Reject Rate",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 1 },
+      "targets": [
+        {
+          "expr": "edgepilot_validation_rejections_total / (edgepilot_validation_passes_total + edgepilot_validation_rejections_total) * 100",
+          "legendFormat": "Rejection %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "red", "value": 30 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "title": "Validation Passes (total)",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 3, "x": 6, "y": 1 },
+      "targets": [
+        {
+          "expr": "edgepilot_validation_passes_total",
+          "legendFormat": "Passes"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "green" }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "title": "Validation Rejections (total)",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 3, "x": 9, "y": 1 },
+      "targets": [
+        {
+          "expr": "edgepilot_validation_rejections_total",
+          "legendFormat": "Rejections"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "fixed", "fixedColor": "red" }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "title": "Validation Rate Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 1 },
+      "targets": [
+        {
+          "expr": "rate(edgepilot_validation_passes_total[1m])",
+          "legendFormat": "Passes/s"
+        },
+        {
+          "expr": "rate(edgepilot_validation_rejections_total[1m])",
+          "legendFormat": "Rejections/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "ops" }
+      }
+    },
+    {
+      "title": "Adaptive Recovery",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 7 },
+      "collapsed": false
+    },
+    {
+      "title": "Recovery Success Rate",
+      "type": "gauge",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 8 },
+      "targets": [
+        {
+          "expr": "edgepilot_recovery_successes_total / (edgepilot_recovery_successes_total + edgepilot_recovery_exhausted_total) * 100",
+          "legendFormat": "Recovery Success %"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "min": 0,
+          "max": 100,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 50 },
+              { "color": "green", "value": 80 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "title": "Recovery Events",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 6, "y": 8 },
+      "targets": [
+        {
+          "expr": "edgepilot_recovery_attempts_total",
+          "legendFormat": "Attempts"
+        },
+        {
+          "expr": "edgepilot_recovery_successes_total",
+          "legendFormat": "Successes"
+        },
+        {
+          "expr": "edgepilot_recovery_exhausted_total",
+          "legendFormat": "Exhausted"
+        }
+      ],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "title": "Recovery Events Over Time",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 8 },
+      "targets": [
+        {
+          "expr": "rate(edgepilot_recovery_attempts_total[1m])",
+          "legendFormat": "Recovery attempts/s"
+        },
+        {
+          "expr": "rate(edgepilot_recovery_successes_total[1m])",
+          "legendFormat": "Recovery successes/s"
+        },
+        {
+          "expr": "rate(edgepilot_recovery_exhausted_total[1m])",
+          "legendFormat": "Budget exhausted/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "ops" }
+      }
+    },
+    {
+      "title": "Planner Performance",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 14 },
+      "collapsed": false
+    },
+    {
+      "title": "Planner Tokens/sec",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 6, "x": 0, "y": 15 },
+      "targets": [
+        {
+          "expr": "edgepilot_planner_tokens_per_sec{quantile=\"0.5\"}",
+          "legendFormat": "p50 tok/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "yellow", "value": 10 },
+              { "color": "green", "value": 30 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "title": "Planner Latency",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 9, "x": 6, "y": 15 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(edgepilot_planner_latency_seconds_bucket[5m]))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(edgepilot_planner_latency_seconds_bucket[5m]))",
+          "legendFormat": "p95"
+        },
+        {
+          "expr": "histogram_quantile(0.99, rate(edgepilot_planner_latency_seconds_bucket[5m]))",
+          "legendFormat": "p99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      }
+    },
+    {
+      "title": "Tool Execution Breakdown",
+      "type": "piechart",
+      "gridPos": { "h": 6, "w": 9, "x": 15, "y": 15 },
+      "targets": [
+        {
+          "expr": "edgepilot_tool_executions_total",
+          "legendFormat": "{{tool}} ({{status}})"
+        }
+      ]
+    },
+    {
+      "title": "End-to-End Latency",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 21 },
+      "collapsed": false
+    },
+    {
+      "title": "E2E Latency (p50 / p95)",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 0, "y": 22 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(edgepilot_end_to_end_latency_seconds_bucket[5m]))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(edgepilot_end_to_end_latency_seconds_bucket[5m]))",
+          "legendFormat": "p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      }
+    },
+    {
+      "title": "Request Rate & Active",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 12, "x": 12, "y": 22 },
+      "targets": [
+        {
+          "expr": "rate(edgepilot_requests_total[1m])",
+          "legendFormat": "{{status}}/s"
+        },
+        {
+          "expr": "edgepilot_active_requests",
+          "legendFormat": "Active"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "short" }
+      }
+    },
+    {
+      "title": "Voice Pipeline (STT / TTS)",
+      "type": "row",
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 28 },
+      "collapsed": false
+    },
+    {
+      "title": "STT Latency",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 0, "y": 29 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(edgepilot_stt_latency_seconds_bucket[5m]))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(edgepilot_stt_latency_seconds_bucket[5m]))",
+          "legendFormat": "p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      }
+    },
+    {
+      "title": "STT Real-time Factor",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 4, "x": 8, "y": 29 },
+      "targets": [
+        {
+          "expr": "edgepilot_stt_realtime_factor{quantile=\"0.5\"}",
+          "legendFormat": "RTF (p50)"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red", "value": 1.0 }
+            ]
+          }
+        }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    },
+    {
+      "title": "TTS Latency",
+      "type": "timeseries",
+      "gridPos": { "h": 6, "w": 8, "x": 12, "y": 29 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(edgepilot_tts_latency_seconds_bucket[5m]))",
+          "legendFormat": "p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(edgepilot_tts_latency_seconds_bucket[5m]))",
+          "legendFormat": "p95"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      }
+    },
+    {
+      "title": "TTS Audio Duration",
+      "type": "stat",
+      "gridPos": { "h": 6, "w": 4, "x": 20, "y": 29 },
+      "targets": [
+        {
+          "expr": "edgepilot_tts_audio_duration_seconds{quantile=\"0.5\"}",
+          "legendFormat": "p50 duration"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      },
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] } }
+    }
+  ],
+  "schemaVersion": 39,
+  "tags": ["edgepilot", "local-ai"],
+  "templating": { "list": [] },
+  "time": { "from": "now-15m", "to": "now" },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "EdgePilot Dashboard",
+  "uid": "edgepilot-main",
+  "version": 1
+}

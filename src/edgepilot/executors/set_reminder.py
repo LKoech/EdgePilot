@@ -15,9 +15,7 @@ _reminders: list[dict[str, str]] = []
 
 class SetReminderArgs(BaseModel):
     message: str = Field(description="The reminder text.")
-    time: str = Field(
-        description="When to remind, e.g. '2025-01-15 14:30' or 'in 5 minutes'."
-    )
+    time: str = Field(description="When to remind, e.g. '2025-01-15 14:30' or 'in 5 minutes'.")
 
 
 class SetReminderExecutor(BaseExecutor):

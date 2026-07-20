@@ -28,11 +28,13 @@ class ExecutorRegistry:
         tools = []
         for ex in self._executors.values():
             schema = ex.args_schema.model_json_schema()
-            tools.append({
-                "name": ex.name,
-                "description": ex.description,
-                "parameters": schema,
-            })
+            tools.append(
+                {
+                    "name": ex.name,
+                    "description": ex.description,
+                    "parameters": schema,
+                }
+            )
         return tools
 
     def validate_and_execute(self, tool_call: ToolCall) -> ToolResult:

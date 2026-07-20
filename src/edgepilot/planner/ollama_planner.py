@@ -80,8 +80,7 @@ class OllamaPlanner(BasePlanner):
             logger.error("Ollama request failed: %s", e)
             return PlannerResult(
                 text_response=(
-                    f"Planner error: could not reach Ollama at "
-                    f"{self.base_url}. Is it running?"
+                    f"Planner error: could not reach Ollama at {self.base_url}. Is it running?"
                 ),
                 raw_output="",
             )

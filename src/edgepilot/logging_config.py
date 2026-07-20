@@ -16,9 +16,18 @@ class StructuredFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
         # Attach structured extras if present
-        for key in ("event_type", "attempt", "tool_name", "error",
-                     "user_input", "success", "elapsed_sec", "tokens_per_sec",
-                     "failure_type", "recovery_count"):
+        for key in (
+            "event_type",
+            "attempt",
+            "tool_name",
+            "error",
+            "user_input",
+            "success",
+            "elapsed_sec",
+            "tokens_per_sec",
+            "failure_type",
+            "recovery_count",
+        ):
             val = getattr(record, key, None)
             if val is not None:
                 log_entry[key] = val
@@ -35,7 +44,5 @@ def configure_logging(structured: bool = False, level: int = logging.INFO) -> No
     if structured:
         handler.setFormatter(StructuredFormatter())
     else:
-        handler.setFormatter(
-            logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
-        )
+        handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s"))
     root.addHandler(handler)
