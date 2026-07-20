@@ -3,16 +3,18 @@
 import struct
 from unittest.mock import MagicMock, patch
 
-import numpy as np
+import pytest
 
-from edgepilot.executors.base import ToolCall
-from edgepilot.executors.get_time import GetTimeExecutor
-from edgepilot.executors.registry import ExecutorRegistry
-from edgepilot.planner.base import BasePlanner, PlannerResult
-from edgepilot.recovery.controller import RecoveryController
-from edgepilot.stt.base import BaseSTT, TranscriptionResult
-from edgepilot.tts.base import BaseTTS, SynthesisResult
-from edgepilot.voice_loop import VoiceLoop
+np = pytest.importorskip("numpy")
+
+from edgepilot.executors.base import ToolCall  # noqa: E402
+from edgepilot.executors.get_time import GetTimeExecutor  # noqa: E402
+from edgepilot.executors.registry import ExecutorRegistry  # noqa: E402
+from edgepilot.planner.base import BasePlanner, PlannerResult  # noqa: E402
+from edgepilot.recovery.controller import RecoveryController  # noqa: E402
+from edgepilot.stt.base import BaseSTT, TranscriptionResult  # noqa: E402
+from edgepilot.tts.base import BaseTTS, SynthesisResult  # noqa: E402
+from edgepilot.voice_loop import VoiceLoop  # noqa: E402
 
 
 class MockSTT(BaseSTT):

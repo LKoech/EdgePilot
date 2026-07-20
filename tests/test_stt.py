@@ -1,8 +1,10 @@
 """Tests for STT interface and Whisper integration."""
 
-import numpy as np
+import pytest
 
-from edgepilot.stt.base import BaseSTT, TranscriptionResult
+np = pytest.importorskip("numpy")
+
+from edgepilot.stt.base import BaseSTT, TranscriptionResult  # noqa: E402
 
 
 class MockSTT(BaseSTT):
